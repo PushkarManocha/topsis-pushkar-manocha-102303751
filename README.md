@@ -122,10 +122,10 @@ The algorithm follows these steps:
 Let the decision matrix be (X = [x_{ij}]):
 
 1. **Normalization**
-   [ r_{ij} = \frac{x_{ij}}{\sqrt{\sum x_{ij}^2}} ]
+   r_ij = x_ij / sqrt( Σ x_ij² )
 
 2. **Weighted Normalization**
-   [ v_{ij} = w_j \times r_{ij} ]
+   v_ij = w_j × r_ij
 
 3. **Ideal Solutions**
 
@@ -133,11 +133,11 @@ Let the decision matrix be (X = [x_{ij}]):
    * Cost criterion (`-`): best = min, worst = max
 
 4. **Separation Measures**
-   [ S_i^+ = \sqrt{\sum (v_{ij} - v_j^+)^2} ]
-   [ S_i^- = \sqrt{\sum (v_{ij} - v_j^-)^2} ]
+   S_i+ = √(Σ (v_ij − v_j+)²)
+   S_i− = √(Σ (v_ij − v_j−)²)
 
 5. **TOPSIS Score**
-   [ C_i = \frac{S_i^-}{S_i^+ + S_i^-} ]
+   C_i = S_i− / (S_i+ + S_i−)
 
 ---
 
@@ -178,7 +178,9 @@ python -m twine upload dist/*
 ## Author
 
 **Pushkar Manocha**
+
 Roll No: 102303751
+
 Thapar Institute of Engineering and Technology
 
 ---
@@ -186,3 +188,4 @@ Thapar Institute of Engineering and Technology
 ## License
 
 This project is intended for **academic and educational use** as part of a university assignment. Redistribution or reuse should acknowledge the author.
+
