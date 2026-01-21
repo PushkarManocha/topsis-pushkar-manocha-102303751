@@ -1,153 +1,188 @@
-# TOPSIS Package
+# TOPSIS Implementation in Python
 
-A Python package implementing **TOPSIS (Technique for Order of Preference by Similarity to Ideal Solution)** for **Multi-Criteria Decision Making (MCDM)** analysis. Rank alternatives based on multiple numeric criteria with a simple command-line interface.
+## Overview
 
-**Author:** Pushkar Manocha (Roll No: 102303751)
+This project provides a Python-based implementation of the **Technique for Order Preference by Similarity to Ideal Solution (TOPSIS)**, a well-known multi-criteria decision-making (MCDM) method. The tool helps rank multiple alternatives by comparing them against an ideal best and an ideal worst solution based on user-defined criteria, weights, and impacts.
+
+The package is designed to be simple to use, robust against invalid inputs, and suitable for academic as well as practical decision-making scenarios.
 
 ---
 
 ## What is TOPSIS?
 
-TOPSIS is a multi-criteria decision analysis method that ranks alternatives based on their geometric distance from ideal solutions. The best alternative should have:
-- The **shortest distance** from the positive ideal solution
-- The **longest distance** from the negative ideal solution
+TOPSIS is a decision-making technique used when multiple, often conflicting, criteria must be considered simultaneously. The core idea is to choose the alternative that is **closest to the ideal solution** and **farthest from the worst solution**.
+
+Key characteristics:
+
+* Works with quantitative criteria
+* Allows both benefit (`+`) and cost (`-`) criteria
+* Produces a relative performance score for each alternative
+
+---
+
+## Package Features
+
+* Supports any number of alternatives and criteria
+* Handles both positive and negative impacts
+* Automatic input validation with meaningful error messages
+* Outputs TOPSIS scores and final rankings in CSV format
+* Can be executed via command line or Python module
 
 ---
 
 ## Installation
 
-Install the package from PyPI:
+Clone or download the project and install it locally using:
 
 ```bash
-pip install topsis-pushkar-manocha-102303751
+pip install .
+```
+
+Ensure that Python **3.8 or higher** is installed on your system.
+
+---
+
+## Input File Format
+
+The input must be a CSV file with the following structure:
+
+* **First column**: Names/IDs of alternatives
+* **Remaining columns**: Numerical values for criteria
+
+### Example
+
+```csv
+Alternative,C1,C2,C3,C4
+A1,250,16,12,5
+A2,200,20,8,3
+A3,300,14,16,4
 ```
 
 ---
 
-## Quick Start
+## Command-Line Usage
 
-### CLI Usage
+After installation, the package can be executed using:
 
 ```bash
-topsis-hk <input_csv> <weights> <impacts> <output_csv>
+topsis-pushkar-manocha-102303751 <input_file> <weights> <impacts> <output_file>
 ```
 
-### Example Command
+### Example
 
 ```bash
-topsis-hk sample.csv "0.25,0.25,0.25,0.25" "+,+,-,+" output.csv
+topsis-pushkar-manocha-102303751 input.csv "1,1,1,1,1" "+,+,-,+,+" output.csv
 ```
 
 ---
 
-## Input Format
+## Alternative Execution Method (Recommended)
 
-### CSV File Structure
+If the command-line script is not detected on your system, you can run the program using the Python module interface:
 
-Your input CSV must have:
-- **First column:** Alternative names/IDs
-- **Remaining columns:** Numeric criteria values only
-
-Example (`sample.csv`):
-
-| Model | Storage | Camera | Price | Rating |
-|-------|---------|--------|-------|--------|
-| M1    | 16      | 12     | 250   | 5      |
-| M2    | 16      | 8      | 200   | 3      |
-| M3    | 32      | 16     | 300   | 4      |
-| M4    | 32      | 8      | 275   | 4      |
-| M5    | 16      | 16     | 225   | 2      |
-
-### Weights Vector
-
-Comma-separated numeric values indicating criterion importance:
-
-```
-"0.25,0.25,0.25,0.25"
+```bash
+python -m topsis_pushkar_manocha_102303751.cli input.csv "1,1,1,1,1" "+,+,-,+,+" output.csv
 ```
 
-### Impacts Vector
+This method avoids environment and PATH-related issues.
 
-Comma-separated `+` or `-` values indicating if a criterion is beneficial (`+`) or non-beneficial (`-`):
+---
 
+## Output Format
+
+The output CSV file contains:
+
+* Original input data
+* **TOPSIS Score** for each alternative
+* **Rank**, where rank 1 indicates the best alternative
+
+### Notes
+
+* TOPSIS scores range between **0 and 1**
+* Higher scores indicate better alternatives
+
+---
+
+## Methodology
+
+The algorithm follows these steps:
+
+1. Construct the decision matrix from input data
+2. Normalize the decision matrix
+3. Apply weights to normalized values
+4. Determine ideal best and ideal worst values
+5. Compute separation measures from ideal solutions
+6. Calculate TOPSIS scores
+7. Rank alternatives based on scores
+
+---
+
+## Mathematical Formulation
+
+Let the decision matrix be (X = [x_{ij}]):
+
+1. **Normalization**
+   [ r_{ij} = \frac{x_{ij}}{\sqrt{\sum x_{ij}^2}} ]
+
+2. **Weighted Normalization**
+   [ v_{ij} = w_j \times r_{ij} ]
+
+3. **Ideal Solutions**
+
+   * Benefit criterion (`+`): best = max, worst = min
+   * Cost criterion (`-`): best = min, worst = max
+
+4. **Separation Measures**
+   [ S_i^+ = \sqrt{\sum (v_{ij} - v_j^+)^2} ]
+   [ S_i^- = \sqrt{\sum (v_{ij} - v_j^-)^2} ]
+
+5. **TOPSIS Score**
+   [ C_i = \frac{S_i^-}{S_i^+ + S_i^-} ]
+
+---
+
+## Input Validation Rules
+
+The program checks for the following conditions:
+
+* Input file must exist and be in CSV format
+* All criteria values must be numeric
+* Number of weights must match number of criteria
+* Number of impacts must match number of criteria
+* Impacts must be either `+` or `-`
+
+Errors are reported with clear messages for easy debugging.
+
+---
+
+## Build and Distribution (Optional)
+
+For packaging or publishing purposes:
+
+```bash
+python -m build
+python -m twine upload dist/*
 ```
-"+,+,-,+"
-```
-
-- `+` : Higher is better (Storage, Camera, Rating)
-- `-` : Lower is better (Price)
 
 ---
 
-## Output
+## Applications
 
-The output CSV contains all original columns plus two new columns:
-
-| Column Name | Description |
-|---|---|
-| `Topsis Score (102303751)` | TOPSIS score for each alternative |
-| `Rank (102303751)` | Rank of each alternative (1 = best) |
-
-### Sample Output
-
-| Model | Storage | Camera | Price | Rating | Topsis Score (102303751) | Rank (Pushkar Manocha) |
-|-------|---------|--------|-------|--------|--------------------------|----------------|
-| M1    | 16      | 12     | 250   | 5      | 0.7234                   | 2              |
-| M2    | 16      | 8      | 200   | 3      | 0.4521                   | 5              |
-| M3    | 32      | 16     | 300   | 4      | 0.6892                   | 3              |
-| M4    | 32      | 8      | 275   | 4      | 0.5643                   | 4              |
-| M5    | 16      | 16     | 225   | 2      | 0.8123                   | 1              |
-
----
-
-## Validation Rules
-
-The package enforces the following validations:
-
-- Input file must be a valid CSV
-- First column contains alternative names (non-numeric)
-- All other columns contain numeric values only
-- Number of weights must match number of criteria columns
-- Number of impacts must match number of criteria columns
-- Impact values must be either `+` or `-`
-- Weights must be numeric and positive (> 0)
-
----
-
-## Algorithm Steps
-
-TOPSIS performs the following steps:
-
-1. **Normalize** the decision matrix
-2. **Weight** the normalized decision matrix
-3. **Calculate** ideal best and ideal worst solutions
-4. **Compute** Euclidean distances from each alternative to ideal solutions
-5. **Calculate** TOPSIS score for each alternative
-6. **Rank** alternatives in descending order of TOPSIS score
-
----
-
-## Requirements
-
-- Python >= 3.8
-- numpy
-- pandas
-
----
-
-## Keywords
-
-`TOPSIS` `MCDM` `Multi-Criteria Decision Making` `Decision Analysis` `Optimization` `Ranking`
+* Supplier or vendor selection
+* Product comparison
+* Academic decision-making problems
+* Engineering and management analysis
 
 ---
 
 ## Author
 
-**Pushkar Manocha**  
+**Pushkar Manocha**
 Roll No: 102303751
+Thapar Institute of Engineering and Technology
 
 ---
 
 ## License
 
-This package is part of a college assignment project.
+This project is intended for **academic and educational use** as part of a university assignment. Redistribution or reuse should acknowledge the author.

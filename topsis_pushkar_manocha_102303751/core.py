@@ -9,7 +9,6 @@ class TopsisError(Exception):
 
 
 def _parse_vector(vec: str, kind: str):
-    """Parse comma separated string values with trimming."""
     parts = [x.strip() for x in vec.split(",") if x.strip() != ""]
     if not parts:
         raise TopsisError(f"{kind} cannot be empty.")
@@ -27,14 +26,31 @@ def run_topsis(input_csv: str, weights: str, impacts: str, output_csv: str) -> N
     except Exception as e:
         raise TopsisError(f"Could not read CSV: {e}")
 
-    if df.shape[1] < 3:
-        raise TopsisError("CSV must contain at least 3 columns (ID + 2 criteria columns).")
+    if df.shape[1] < 1:
+        raise TopsisError("CSV must contain at least 1 column.")
+
+    # Determine whether first column is an identifier (non-numeric)
+    first_col = df.iloc[:, 0]
+    has_id = False
+    try:
+        # if the first column can be converted to float, treat it as numeric (no ID)
+        pd.to_numeric(first_col)
+        has_id = False
+    except Exception:
+        has_id = True
 
     # ---- Extract numeric criteria matrix ----
     try:
-        X = df.iloc[:, 1:].astype(float).to_numpy()
+        if has_id:
+            if df.shape[1] < 3:
+                raise TopsisError("CSV must contain at least 3 columns (ID + 2 criteria columns).")
+            X = df.iloc[:, 1:].astype(float).to_numpy()
+        else:
+            if df.shape[1] < 2:
+                raise TopsisError("CSV must contain at least 2 numeric columns when no ID column is present.")
+            X = df.astype(float).to_numpy()
     except Exception:
-        raise TopsisError("Columns from 2nd onward must contain numeric values only.")
+        raise TopsisError("Criteria columns must contain numeric values only.")
 
     # ---- Parse weights & impacts ----
     w_list = _parse_vector(weights, "Weights")
@@ -89,12 +105,17 @@ def run_topsis(input_csv: str, weights: str, impacts: str, output_csv: str) -> N
     d_minus = np.sqrt(((V - ideal_worst) ** 2).sum(axis=1))
 
     # ---- Step 5: Performance score ----
-    score = d_minus / (d_plus + d_minus)
+    # avoid division by zero
+    denom_score = d_plus + d_minus
+    denom_score[denom_score == 0] = np.finfo(float).eps
+    score = d_minus / denom_score
 
     # ---- Rank (1 = best) ----
     rank = score.argsort()[::-1].argsort() + 1
 
     # ---- Output ----
-    df["Topsis Score (102303751)"] = score
-    df["Rank (102303751)"] = rank
-    df.to_csv(output_csv, index=False)
+    out_df = df.copy()
+    out_df["Topsis Score"] = np.round(score, 4)
+    out_df["Rank"] = rank
+    out_df.to_csv(output_csv, index=False)
+
